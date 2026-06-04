@@ -11,7 +11,14 @@ Convert the study notes below into a clean, self-contained HTML revision sheet.
 Follow these requirements exactly:
 
 **Structure:**
-- A sticky top navbar with anchor jump links to every topic section
+- A sticky top navbar with:
+  - Brand label (revision sheet title, links back to the home page)
+  - A back-to-home page link (visible on desktop, hidden on mobile)
+  - A hamburger menu button (visible on mobile, hidden on desktop)
+  - Anchor jump links to every topic section (shown inline on desktop, hidden inside a slide-in drawer on mobile)
+- A slide-in drawer (off-canvas sidebar) that opens from the left when hamburger is tapped on mobile
+  - Contains all anchor jump links in a vertical stacked list
+  - Overlay backdrop behind the drawer to dismiss on tap
 - Each topic in its own <section> card
 - Subsections for: Definition, Key Points, Formulas/Rules, Use Cases, Things to Remember
 
@@ -45,11 +52,34 @@ Dark mode colors:
 - Definition inside a styled <blockquote>
 - Fully mobile-friendly layout
 
+**Mobile drawer (off-canvas sidebar):**
+- Drawer slides in from the left edge with a smooth `transform: translateX(...)` transition
+- Width: 75vw (max 280px) on mobile
+- Drawer has same background as the current theme's card background, with a subtle border-right
+- Contains:
+  - A close button (×) at the top-right of the drawer
+  - The same brand label as the navbar (links back to the home page)
+  - A back-to-home page link
+  - A horizontal rule separator
+  - Vertical stacked anchor jump links to every topic section, styled as full-width tap targets
+  - Theme toggle button at the bottom of the drawer
+- An overlay backdrop (<div>) behind the drawer:
+  - Covers the full viewport
+  - Semi-transparent black (rgba(0,0,0,0.5))
+  - Tap/click anywhere on the overlay closes the drawer
+- Drawer has `z-index: 1000`, overlay has `z-index: 999`
+- Body gets `overflow: hidden` when drawer is open to prevent background scrolling
+- Desktop (≥ 768px): drawer is never shown; hamburger button is hidden; anchor links are displayed inline in the navbar
+
 **Rules:**
-- Pure HTML + CSS + minimal vanilla JS (only for the toggle button) — no frameworks, no CDN
+- Pure HTML + CSS + minimal vanilla JS (only for the theme toggle and drawer open/close) — no frameworks, no CDN
 - Everything in a single .html file
 - Skip any subsection that has no content for a topic
 - The toggle button must remember the user's preference using localStorage
+- The hamburger button must toggle the drawer open/close state
+- Clicking a drawer link should close the drawer and smoothly scroll to the target section
+- Clicking the overlay backdrop should close the drawer
+- Pressing the Escape key should close the drawer
 
 Here are the notes:
 
@@ -103,7 +133,8 @@ Given the prompt above and structured notes, the agent generates a single `.html
 
 | Feature | Detail |
 |---|---|
-| Sticky navbar | Anchor links to every `<section>`, brand label, theme toggle |
+| Sticky navbar | Brand label (links home), back-to-home link (desktop), hamburger button (mobile), anchor links (desktop), theme toggle |
+| Mobile drawer | Slide-in from left with overlay backdrop, close button, back-to-home link, vertical link list, theme toggle at bottom |
 | Page header | `h1` title, subtitle, topic tag pills |
 | Topic cards | One per topic; left border rotates blue-teal → sage → violet |
 | Definition | Italic `<blockquote>` with warm-tint background |
@@ -113,5 +144,6 @@ Given the prompt above and structured notes, the agent generates a single `.html
 | Use cases | Plain prose paragraph |
 | Remember box | Amber left-border callout with emoji icon |
 | Light / dark | Auto (OS) + manual toggle stored in `localStorage` |
+| Drawer JS | Hamburger opens drawer, overlay/close/Escape closes drawer, link tap closes drawer |
 | Mobile | Responsive at 600px breakpoint |
 | Dependencies | Zero — fully self-contained single file |
