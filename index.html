@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Notes — Study Hub</title>
+<style>
+  /* ── Tokens ──────────────────────────────────────────────────── */
+  :root {
+    --bg:       #f5f5f0;
+    --text:     #2d2d2d;
+    --card:     #ffffff;
+    --muted:    #6b7280;
+    --accent1:  #4a7c8e;
+    --accent2:  #5a8a6a;
+    --quote-bg: #fdf6ec;
+    --code-bg:  #eef3f5;
+    --code-txt: #2d4a55;
+    --border:   #e2e8e4;
+    --nav-bg:   #ffffffee;
+    --shadow:   0 2px 12px rgba(0,0,0,.07);
+    --radius:   10px;
+    --drawer-w: 270px;
+  }
+  [data-theme="dark"] {
+    --bg:       #1a1a2e;
+    --text:     #e0e0d0;
+    --card:     #222235;
+    --muted:    #9999aa;
+    --accent1:  #5ba3b0;
+    --accent2:  #6aab7a;
+    --quote-bg: #2a2a3e;
+    --code-bg:  #2e2e45;
+    --code-txt: #c9d1d9;
+    --border:   #33334a;
+    --nav-bg:   #1a1a2eee;
+    --shadow:   0 2px 16px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:       #1a1a2e; --text:     #e0e0d0; --card:     #222235;
+      --muted:    #9999aa; --accent1:  #5ba3b0; --accent2:  #6aab7a;
+      --quote-bg: #2a2a3e; --code-bg:  #2e2e45; --code-txt: #c9d1d9;
+      --border:   #33334a; --nav-bg:   #1a1a2eee;
+      --shadow:   0 2px 16px rgba(0,0,0,.35);
+    }
+  }
+
+  /* ── Reset ───────────────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    transition: background 0.3s, color 0.3s;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* prevent scroll when drawer open */
+  body.drawer-open { overflow: hidden; }
+
+  /* ── Navbar ──────────────────────────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .nav-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    height: 52px;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .nav-brand {
+    font-family: system-ui, sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-right: .5rem;
+  }
+  /* desktop links */
+  .nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .1rem;
+    flex: 1;
+  }
+  .nav-links a {
+    font-family: system-ui, sans-serif;
+    font-size: .72rem;
+    color: var(--muted);
+    text-decoration: none;
+    padding: .4rem .55rem;
+    border-radius: 5px;
+    transition: color .2s, background .2s;
+    white-space: nowrap;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--border); }
+
+  /* theme toggle */
+  .toggle-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 20px;
+    padding: .35rem .85rem;
+    font-size: .72rem;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+  }
+  .toggle-btn:hover { background: var(--border); }
+
+  /* hamburger — hidden on desktop */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .hamburger:hover { background: var(--border); }
+  .hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: transform .25s, opacity .25s;
+  }
+  /* animate to X when open */
+  .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── Drawer overlay ──────────────────────────────────────────── */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 300;
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .drawer-overlay.active { opacity: 1; }
+
+  /* ── Drawer panel ────────────────────────────────────────────── */
+  .drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--drawer-w);
+    height: 100%;
+    background: var(--card);
+    z-index: 400;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
+  .drawer.active { transform: translateX(0); }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .drawer-brand {
+    font-family: system-ui, sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent1);
+  }
+  .drawer-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s, color .2s;
+  }
+  .drawer-close:hover { background: var(--border); color: var(--text); }
+
+  .drawer-nav {
+    flex: 1;
+    padding: .75rem 0;
+  }
+  .drawer-section-label {
+    font-family: system-ui, sans-serif;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: .9rem 1.25rem .3rem;
+  }
+  .drawer-nav a {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    font-family: system-ui, sans-serif;
+    font-size: .88rem;
+    color: var(--text);
+    text-decoration: none;
+    padding: .65rem 1.25rem;
+    transition: background .18s, color .18s;
+    border-radius: 0;
+  }
+  .drawer-nav a:hover { background: var(--code-bg); color: var(--accent1); }
+  .drawer-nav a .d-icon { font-size: 1rem; width: 22px; text-align: center; }
+  .drawer-nav a .d-label { flex: 1; }
+  .drawer-nav a .d-badge {
+    font-size: .58rem;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    background: var(--border);
+    color: var(--muted);
+    padding: .1rem .4rem;
+    border-radius: 4px;
+  }
+  .drawer-nav a .d-badge.ready {
+    background: var(--code-bg);
+    color: var(--accent2);
+  }
+
+  .drawer-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  /* ── Hero ────────────────────────────────────────────────────── */
+  .hero {
+    text-align: center;
+    padding: 3rem 1.25rem 1.75rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .hero h1 {
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 400;
+    letter-spacing: -.01em;
+    color: var(--text);
+    margin-bottom: .45rem;
+  }
+  .hero p {
+    color: var(--muted);
+    font-size: .92rem;
+    font-family: system-ui, sans-serif;
+    max-width: 440px;
+    margin: 0 auto .5rem;
+  }
+  .hero-divider {
+    width: 48px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent1), var(--accent2));
+    border-radius: 2px;
+    margin: 1.1rem auto 0;
+  }
+
+  /* ── Stats bar ───────────────────────────────────────────────── */
+  .stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    flex-wrap: wrap;
+    padding: 1.25rem 1.25rem 0;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+  .stat { text-align: center; font-family: system-ui, sans-serif; }
+  .stat-num { font-size: 1.4rem; font-weight: 700; color: var(--accent1); display: block; }
+  .stat-label { font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+
+  /* ── Main layout ─────────────────────────────────────────────── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2.25rem 1.25rem 4rem;
+  }
+
+  .subject-section { margin-bottom: 2.75rem; }
+  .subject-heading {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin-bottom: 1.1rem;
+  }
+  .subject-heading h2 {
+    font-family: system-ui, sans-serif;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .subject-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Cards grid ──────────────────────────────────────────────── */
+  .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.1rem;
+  }
+  .note-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--accent1);
+    padding: 1.3rem 1.4rem 1.15rem;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+    transition: transform .18s ease, box-shadow .18s ease, background 0.3s;
+    cursor: pointer;
+    position: relative;
+  }
+  .note-card:nth-child(2n) { border-left-color: var(--accent2); }
+  .note-card:nth-child(3n) { border-left-color: #8a6a9e; }
+  .note-card:nth-child(4n) { border-left-color: #b07a4a; }
+  .note-card:nth-child(5n) { border-left-color: #7a4ab0; }
+  .note-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.13); }
+  [data-theme="dark"] .note-card:hover { box-shadow: 0 8px 28px rgba(0,0,0,.45); }
+
+  .note-card-icon  { font-size: 1.45rem; line-height: 1; }
+  .note-card-title { font-size: 1rem; font-weight: 600; font-family: system-ui, sans-serif; color: var(--text); line-height: 1.3; }
+  .note-card-desc  { font-size: .81rem; color: var(--muted); font-family: system-ui, sans-serif; line-height: 1.5; flex: 1; }
+  .note-card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: .2rem; }
+  .note-card-tag {
+    font-family: system-ui, sans-serif;
+    font-size: .6rem; font-weight: 700;
+    letter-spacing: .09em; text-transform: uppercase;
+    color: var(--accent1); background: var(--code-bg);
+    padding: .18rem .5rem; border-radius: 4px;
+  }
+  .note-card:nth-child(2n) .note-card-tag { color: var(--accent2); }
+  .note-card-arrow { font-size: .8rem; color: var(--muted); transition: transform .18s; font-family: system-ui, sans-serif; }
+  .note-card:hover .note-card-arrow { transform: translateX(4px); color: var(--accent1); }
+
+  .note-card.soon { opacity: .5; cursor: default; pointer-events: none; }
+  .note-card.soon:hover { transform: none; }
+  .soon-badge {
+    font-family: system-ui, sans-serif; font-size: .6rem; font-weight: 700;
+    letter-spacing: .09em; text-transform: uppercase;
+    background: var(--border); color: var(--muted);
+    padding: .15rem .45rem; border-radius: 4px;
+  }
+
+  /* ── Footer ──────────────────────────────────────────────────── */
+  footer {
+    text-align: center;
+    padding: 1.75rem 1.25rem 3rem;
+    font-family: system-ui, sans-serif;
+    font-size: .72rem;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  /* ── Responsive: hide desktop links, show hamburger ─────────── */
+  @media (max-width: 700px) {
+    .nav-links   { display: none; }
+    .hamburger   { display: flex; }
+    .toggle-btn  { margin-left: auto; }
+
+    .hero        { padding: 2rem 1rem 1.5rem; }
+    .stats-bar   { gap: 1.25rem; padding: 1rem 1rem 0; }
+    main         { padding: 1.75rem 1rem 3rem; }
+    .cards-grid  { grid-template-columns: 1fr; gap: 1rem; }
+    .subject-section { margin-bottom: 2rem; }
+  }
+
+  @media (max-width: 400px) {
+    .nav-brand { font-size: .7rem; letter-spacing: .08em; }
+    .stat-num  { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-inner">
+    <!-- hamburger (mobile only) -->
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
+    <span class="nav-brand">📚 My Notes</span>
+
+    <!-- desktop links -->
+    <div class="nav-links">
+      <a href="#dsa">DSA</a>
+      <a href="#networking">Networking</a>
+      <a href="#toc">TOC</a>
+      <a href="#compiler">Compiler</a>
+      <a href="#os">OS</a>
+      <a href="#dbms">DBMS</a>
+    </div>
+
+    <button class="toggle-btn" id="themeToggle">
+      <span id="themeIcon">🌙</span>
+      <span id="themeLabel">Dark</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Drawer overlay ─────────────────────────────────────────── -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<!-- ── Drawer panel ───────────────────────────────────────────── -->
+<aside class="drawer" id="drawer" aria-label="Navigation drawer">
+  <div class="drawer-header">
+    <span class="drawer-brand">📚 My Notes</span>
+    <button class="drawer-close" id="drawerClose" aria-label="Close menu">✕</button>
+  </div>
+
+  <nav class="drawer-nav">
+    <div class="drawer-section-label">Subjects</div>
+
+    <a href="#dsa" class="drawer-link">
+      <span class="d-icon">🌳</span>
+      <span class="d-label">Data Structures &amp; Algorithms</span>
+      <span class="d-badge ready">1 note</span>
+    </a>
+    <a href="#networking" class="drawer-link">
+      <span class="d-icon">🌐</span>
+      <span class="d-label">Computer Networks</span>
+      <span class="d-badge">Soon</span>
+    </a>
+    <a href="#toc" class="drawer-link">
+      <span class="d-icon">🤖</span>
+      <span class="d-label">Theory of Computation</span>
+      <span class="d-badge">Soon</span>
+    </a>
+    <a href="#compiler" class="drawer-link">
+      <span class="d-icon">⚙️</span>
+      <span class="d-label">Compiler Design</span>
+      <span class="d-badge">Soon</span>
+    </a>
+    <a href="#os" class="drawer-link">
+      <span class="d-icon">🖥️</span>
+      <span class="d-label">Operating Systems</span>
+      <span class="d-badge">Soon</span>
+    </a>
+    <a href="#dbms" class="drawer-link">
+      <span class="d-icon">🗄️</span>
+      <span class="d-label">Database Management</span>
+      <span class="d-badge">Soon</span>
+    </a>
+  </nav>
+
+  <div class="drawer-footer">
+    <!-- theme toggle inside drawer too -->
+    <button class="toggle-btn" id="themeToggleDrawer" style="width:100%;justify-content:center;">
+      <span id="themeIconDrawer">🌙</span>
+      <span id="themeLabelDrawer">Dark</span>
+    </button>
+  </div>
+</aside>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="hero">
+  <h1>Study Notes Hub</h1>
+  <p>All revision sheets in one place — tap any card to open that topic.</p>
+  <div class="hero-divider"></div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat">
+    <span class="stat-num">1</span>
+    <span class="stat-label">Notes Ready</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">6</span>
+    <span class="stat-label">Subjects</span>
+  </div>
+  <div class="stat">
+    <span class="stat-num">∞</span>
+    <span class="stat-label">Revisions</span>
+  </div>
+</div>
+
+<main>
+
+  <!-- DSA -->
+  <div class="subject-section" id="dsa">
+    <div class="subject-heading"><h2>Data Structures &amp; Algorithms</h2></div>
+    <div class="cards-grid">
+      <a class="note-card" href="binary-tree-revision.html">
+        <div class="note-card-icon">🌳</div>
+        <div class="note-card-title">Binary Trees</div>
+        <div class="note-card-desc">Types, properties, traversals, B+ trees, and complexity cheat sheet.</div>
+        <div class="note-card-footer">
+          <span class="note-card-tag">DSA</span>
+          <span class="note-card-arrow">→</span>
+        </div>
+      </a>
+      <div class="note-card soon">
+        <div class="note-card-icon">🔗</div>
+        <div class="note-card-title">Linked Lists</div>
+        <div class="note-card-desc">Singly, doubly, circular — operations and complexity.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+      <div class="note-card soon">
+        <div class="note-card-icon">📦</div>
+        <div class="note-card-title">Stacks &amp; Queues</div>
+        <div class="note-card-desc">LIFO, FIFO, deque, priority queue and use cases.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+      <div class="note-card soon">
+        <div class="note-card-icon">🗺️</div>
+        <div class="note-card-title">Graphs</div>
+        <div class="note-card-desc">BFS, DFS, shortest paths, MST algorithms.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Networking -->
+  <div class="subject-section" id="networking">
+    <div class="subject-heading"><h2>Computer Networks</h2></div>
+    <div class="cards-grid">
+      <div class="note-card soon">
+        <div class="note-card-icon">🌐</div>
+        <div class="note-card-title">OSI &amp; TCP/IP Model</div>
+        <div class="note-card-desc">Layer functions, protocols, and key differences.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+      <div class="note-card soon">
+        <div class="note-card-icon">📡</div>
+        <div class="note-card-title">Routing &amp; Switching</div>
+        <div class="note-card-desc">Protocols, algorithms, and subnetting formulas.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOC -->
+  <div class="subject-section" id="toc">
+    <div class="subject-heading"><h2>Theory of Computation</h2></div>
+    <div class="cards-grid">
+      <div class="note-card soon">
+        <div class="note-card-icon">🤖</div>
+        <div class="note-card-title">Finite Automata</div>
+        <div class="note-card-desc">DFA, NFA, epsilon-NFA conversions and examples.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+      <div class="note-card soon">
+        <div class="note-card-icon">📝</div>
+        <div class="note-card-title">Regular Expressions</div>
+        <div class="note-card-desc">Patterns, pumping lemma, closure properties.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compiler Design -->
+  <div class="subject-section" id="compiler">
+    <div class="subject-heading"><h2>Compiler Design</h2></div>
+    <div class="cards-grid">
+      <div class="note-card soon">
+        <div class="note-card-icon">⚙️</div>
+        <div class="note-card-title">Lexical Analysis</div>
+        <div class="note-card-desc">Tokens, lexemes, patterns and scanner design.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+      <div class="note-card soon">
+        <div class="note-card-icon">🌲</div>
+        <div class="note-card-title">Parsing &amp; Grammars</div>
+        <div class="note-card-desc">LL, LR, LALR parsers, parse trees and ambiguity.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OS -->
+  <div class="subject-section" id="os">
+    <div class="subject-heading"><h2>Operating Systems</h2></div>
+    <div class="cards-grid">
+      <div class="note-card soon">
+        <div class="note-card-icon">🖥️</div>
+        <div class="note-card-title">Process Management</div>
+        <div class="note-card-desc">Scheduling algorithms, context switching, PCB.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+      <div class="note-card soon">
+        <div class="note-card-icon">🔒</div>
+        <div class="note-card-title">Deadlocks</div>
+        <div class="note-card-desc">Detection, prevention, avoidance and banker's algorithm.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DBMS -->
+  <div class="subject-section" id="dbms">
+    <div class="subject-heading"><h2>Database Management</h2></div>
+    <div class="cards-grid">
+      <div class="note-card soon">
+        <div class="note-card-icon">🗄️</div>
+        <div class="note-card-title">Normalization</div>
+        <div class="note-card-desc">1NF to BCNF, functional dependencies and decomposition.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+      <div class="note-card soon">
+        <div class="note-card-icon">📊</div>
+        <div class="note-card-title">SQL &amp; Queries</div>
+        <div class="note-card-desc">Joins, aggregation, subqueries and indexing.</div>
+        <div class="note-card-footer"><span class="soon-badge">Coming soon</span></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  Built with NotebookLM + Claude · Hosted on GitHub Pages · Add new notes anytime
+</footer>
+
+<script>
+(function () {
+  /* ── Theme ──────────────────────────────────────────────────── */
+  const root = document.documentElement;
+
+  function applyTheme(dark) {
+    root.setAttribute('data-theme', dark ? 'dark' : 'light');
+    ['themeIcon','themeIconDrawer'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = dark ? '🌙' : '☀️';
+    });
+    ['themeLabel','themeLabelDrawer'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = dark ? 'Dark' : 'Light';
+    });
+  }
+
+  function toggleTheme() {
+    const isDark = root.getAttribute('data-theme') === 'dark';
+    applyTheme(!isDark);
+    localStorage.setItem('theme', !isDark ? 'dark' : 'light');
+  }
+
+  const saved = localStorage.getItem('theme');
+  applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+  document.getElementById('themeToggleDrawer').addEventListener('click', toggleTheme);
+
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+    if (!localStorage.getItem('theme')) applyTheme(e.matches);
+  });
+
+  /* ── Drawer ─────────────────────────────────────────────────── */
+  const hamburger = document.getElementById('hamburger');
+  const drawer    = document.getElementById('drawer');
+  const overlay   = document.getElementById('drawerOverlay');
+  const closeBtn  = document.getElementById('drawerClose');
+
+  function openDrawer() {
+    drawer.classList.add('active');
+    overlay.classList.add('active');
+    overlay.style.display = 'block';
+    hamburger.classList.add('active');
+    document.body.classList.add('drawer-open');
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('active');
+    overlay.classList.remove('active');
+    hamburger.classList.remove('active');
+    document.body.classList.remove('drawer-open');
+    // hide overlay after transition
+    setTimeout(() => { overlay.style.display = 'none'; }, 280);
+  }
+
+  hamburger.addEventListener('click', openDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+  overlay.addEventListener('click', closeDrawer);
+
+  // close drawer when a nav link is tapped
+  drawer.querySelectorAll('a.drawer-link').forEach(link => {
+    link.addEventListener('click', closeDrawer);
+  });
+
+  // close on Escape
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeDrawer();
+  });
+})();
+</script>
+</body>
+</html>
