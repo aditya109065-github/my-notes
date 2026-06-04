@@ -20,6 +20,7 @@
     --nav-bg:   #ffffffee;
     --shadow:   0 2px 12px rgba(0,0,0,.07);
     --radius:   10px;
+    --drawer-w: 270px;
   }
   [data-theme="dark"] {
     --bg:       #1a1a2e;
@@ -62,7 +63,9 @@
     line-height: 1.7;
     transition: background 0.3s, color 0.3s;
     min-height: 100vh;
+    overflow-x: hidden;
   }
+  body.drawer-open { overflow: hidden; }
 
   /* ── Navbar ──────────────────────────────────────────────── */
   nav {
@@ -132,6 +135,133 @@
     margin-bottom: .5rem;
   }
   .toggle-btn:hover { background: var(--border); }
+
+  /* hamburger — hidden on desktop */
+  .hamburger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background .2s;
+  }
+  .hamburger:hover { background: var(--border); }
+  .hamburger span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    background: var(--text);
+    border-radius: 2px;
+    transition: transform .25s, opacity .25s;
+  }
+  .hamburger.active span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.active span:nth-child(2) { opacity: 0; }
+  .hamburger.active span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  /* ── Drawer overlay ──────────────────────────────────────────── */
+  .drawer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 300;
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .drawer-overlay.active { opacity: 1; }
+
+  /* ── Drawer panel ────────────────────────────────────────────── */
+  .drawer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--drawer-w);
+    height: 100%;
+    background: var(--card);
+    z-index: 400;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    box-shadow: 4px 0 24px rgba(0,0,0,.18);
+  }
+  .drawer.active { transform: translateX(0); }
+
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .drawer-brand {
+    font-family: system-ui, sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent1);
+  }
+  .drawer-close {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    font-size: 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s, color .2s;
+  }
+  .drawer-close:hover { background: var(--border); color: var(--text); }
+
+  .drawer-nav {
+    flex: 1;
+    padding: .75rem 0;
+  }
+  .drawer-section-label {
+    font-family: system-ui, sans-serif;
+    font-size: .62rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: .9rem 1.25rem .3rem;
+  }
+  .drawer-nav a {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    font-family: system-ui, sans-serif;
+    font-size: .88rem;
+    color: var(--text);
+    text-decoration: none;
+    padding: .65rem 1.25rem;
+    transition: background .18s, color .18s;
+    border-radius: 0;
+  }
+  .drawer-nav a:hover { background: var(--code-bg); color: var(--accent1); }
+  .drawer-nav a .d-icon { font-size: 1rem; width: 22px; text-align: center; }
+  .drawer-nav a .d-label { flex: 1; }
+
+  .drawer-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
 
   /* ── Layout ──────────────────────────────────────────────── */
   main {
@@ -310,8 +440,6 @@
   }
   .formula-table tr:last-child td { border-bottom: none; }
   .formula-table tr:hover td { background: var(--quote-bg); }
-  
-  /* Highlight specifically for complexity columns if needed */
   .formula-table td code {
     font-family: 'Courier New', monospace;
     background: var(--code-bg);
@@ -365,7 +493,6 @@
   }
   section.card:nth-child(even) .cmp-table th { background: var(--accent2); }
   section.card:nth-child(3n) .cmp-table th { background: #8a6a9e; }
-  
   .cmp-table th:first-child { border-radius: 6px 0 0 0; }
   .cmp-table th:last-child  { border-radius: 0 6px 0 0; }
   .cmp-table td {
@@ -379,6 +506,8 @@
 
   /* ── Responsive ──────────────────────────────────────────── */
   @media (max-width: 600px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
     main { padding: 1.5rem .85rem 3rem; }
     section.card { padding: 1.25rem 1rem 1rem; }
     .nav-inner { padding: 0 .75rem; gap: .3rem; }
@@ -391,6 +520,11 @@
 
 <nav>
   <div class="nav-inner">
+    <!-- hamburger (mobile only) -->
+    <button class="hamburger" id="hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+
     <span class="nav-brand">🔗 Linked Lists</span>
     <div class="nav-links">
       <a href="#singly">Singly</a>
@@ -403,6 +537,41 @@
     </button>
   </div>
 </nav>
+
+<!-- ── Drawer overlay ── -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<!-- ── Drawer panel ── -->
+<aside class="drawer" id="drawer" aria-label="Navigation drawer">
+  <div class="drawer-header">
+    <span class="drawer-brand">🔗 Linked Lists</span>
+    <button class="drawer-close" id="drawerClose" aria-label="Close menu">✕</button>
+  </div>
+
+  <nav class="drawer-nav">
+    <div class="drawer-section-label">On this page</div>
+
+    <a href="#singly" class="drawer-link">
+      <span class="d-icon">➡️</span>
+      <span class="d-label">Singly Linked Lists</span>
+    </a>
+    <a href="#doubly" class="drawer-link">
+      <span class="d-icon">↔️</span>
+      <span class="d-label">Doubly Linked Lists</span>
+    </a>
+    <a href="#circular" class="drawer-link">
+      <span class="d-icon">🔄</span>
+      <span class="d-label">Circular Linked Lists</span>
+    </a>
+  </nav>
+
+  <div class="drawer-footer">
+    <button class="toggle-btn" id="themeToggleDrawer" style="width:100%;justify-content:center;">
+      <span id="themeIconDrawer">☀️</span>
+      <span id="themeLabelDrawer">Light</span>
+    </button>
+  </div>
+</aside>
 
 <main>
 
@@ -434,7 +603,7 @@
       <li><strong>Non-Contiguous Storage</strong> — Unlike arrays, nodes are not stored in contiguous memory locations and are linked via pointers.</li>
     </ul>
 
-    <div class="sub-label">Formulas &amp; Rules</div>
+    <div class="sub-label">Formulas & Rules</div>
     <div class="table-wrapper">
       <table class="formula-table">
         <thead><tr><th>Property / Invariant</th><th>Metric / Rule</th></tr></thead>
@@ -504,175 +673,6 @@
           <tr><td>Memory Allocation</td><td>Dynamic (one by one)</td><td>Static/Fixed (whole block)</td></tr>
           <tr><td>Access Type</td><td>Sequential (<code>O(n)</code>)</td><td>Random (<code>O(1)</code>)</td></tr>
           <tr><td>Insertion/Deletion</td><td>Efficient (<code>O(1)</code> at ends)</td><td>Inefficient (requires shifting)</td></tr>
-          <tr><td>Cache Friendliness</td><td>Low (non-contiguous)</td><td>High (contiguous memory)</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="sub-label">Things to Remember</div>
-    <div class="remember">
-      <div class="remember-item">
-        <span class="icon">💡</span>
-        <div><strong>Cache Unfriendly:</strong> Nodes are scattered in memory resulting in poor locality of reference and cache misses during traversal.</div>
-      </div>
-      <div class="remember-item">
-        <span class="icon">🚀</span>
-        <div><strong>Real-Time Advantage:</strong> Allows <code>O(1)</code> insertion/deletion at the beginning without shifting elements, critical for time-sensitive tasks.</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="card" id="doubly">
-    <div class="card-header">
-      <h2>Doubly Linked Lists</h2>
-      <span class="card-tag">Bidirectional</span>
-    </div>
-
-    <div class="sub-label">Definition</div>
-    <blockquote class="def">
-      A complex linked list where each node contains data and two pointers: one pointing to the next node and another to the previous node.
-    </blockquote>
-
-    <div class="sub-label">Key Points</div>
-    <ul class="kp">
-      <li><strong>Bidirectional Traversal</strong> — Facilitates efficient navigation in both forward and backward directions using <code>next</code> and <code>prev</code> pointers.</li>
-      <li><strong>Pointer Overhead</strong> — Each node requires more memory compared to a singly linked list due to the additional pointer.</li>
-      <li><strong>Symmetry Rule</strong> — For any node N, if N.next is M, then M.prev must be N to maintain structural integrity.</li>
-    </ul>
-
-    <div class="sub-label">Formulas &amp; Rules</div>
-    <div class="table-wrapper">
-      <table class="formula-table">
-        <thead><tr><th>Property / Rule</th><th>Metric / Formula</th></tr></thead>
-        <tbody>
-          <tr><td>Node Memory Consumption</td><td><code>(Data Size) + 2 * (Pointer Size)</code> per node</td></tr>
-          <tr><td>Deletion Efficiency</td><td><code>O(1)</code> time if the pointer to the target node is known</td></tr>
-          <tr><td>Head/Tail Bounds</td><td><code>prev</code> of head and <code>next</code> of tail must be null</td></tr>
-          <tr><td>Referential Complexity</td><td>Insertion/deletion updates 4 pointers (2 for new node, 1 for each neighbor)</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="sub-label">Core Operations</div>
-    <div class="table-wrapper">
-      <table class="formula-table">
-        <thead>
-          <tr>
-            <th>Operation</th>
-            <th>Algorithmic Mechanism</th>
-            <th>Time (Best / Avg / Worst)</th>
-            <th>Space</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Deletion</strong></td>
-            <td>Update the <code>next</code> of preceding node and <code>prev</code> of succeeding node to bypass target.</td>
-            <td><code>O(1)</code> / <code>O(1)</code> / <code>O(1)</code></td>
-            <td><code>O(1)</code></td>
-          </tr>
-          <tr>
-            <td><strong>Backward Traversal</strong></td>
-            <td>Start from the tail or any middle node and move toward the head using <code>prev</code>.</td>
-            <td><code>O(1)</code> / <code>O(n)</code> / <code>O(n)</code></td>
-            <td><code>O(1)</code></td>
-          </tr>
-          <tr>
-            <td><strong>Insertion at Tail</strong></td>
-            <td>Link new node's <code>prev</code> to current tail, update tail's <code>next</code> to new node.</td>
-            <td><code>O(1)</code> / <code>O(1)</code> / <code>O(1)</code></td>
-            <td><code>O(1)</code></td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="sub-label">Use Cases</div>
-    <ul class="kp">
-      <li><strong>Navigation Systems</strong> — Ideal for browser history (back/forward), music playlists, and undo/redo functionality.</li>
-      <li><strong>Deques (Double-Ended Queues)</strong> — Efficiently supports insertion and removal from both ends of the data structure.</li>
-    </ul>
-
-    <div class="sub-label">Contrasts: Singly vs Doubly</div>
-    <div class="table-wrapper">
-      <table class="cmp-table">
-        <thead>
-          <tr><th>Parameter</th><th>Singly Linked List</th><th>Doubly Linked List</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Memory</td><td>Lower (1 pointer/node)</td><td>Higher (2 pointers/node)</td></tr>
-          <tr><td>Traversal</td><td>Forward only</td><td>Forward and Backward</td></tr>
-          <tr><td>Deletion</td><td>Requires pointer to predecessor</td><td><code>O(1)</code> if target pointer is known</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="sub-label">Things to Remember</div>
-    <div class="remember">
-      <div class="remember-item">
-        <span class="icon">✅</span>
-        <div><strong>Simplified Deletion:</strong> The <code>prev</code> pointer eliminates the need to traverse from the head to find the previous node, achieving <code>O(1)</code> deletion.</div>
-      </div>
-      <div class="remember-item">
-        <span class="icon">⚠️</span>
-        <div><strong>Major Disadvantages:</strong> Consumes more memory per node, and pointer implementation is highly complex, increasing the risk of broken links.</div>
-      </div>
-    </div>
-  </section>
-
-  <section class="card" id="circular">
-    <div class="card-header">
-      <h2>Circular Linked Lists</h2>
-      <span class="card-tag">Closed Loop</span>
-    </div>
-
-    <div class="sub-label">Definition</div>
-    <blockquote class="def">
-      A linked list variation where the last node points back to the first node instead of null, forming a continuous closed loop.
-    </blockquote>
-
-    <div class="sub-label">Key Points</div>
-    <ul class="kp">
-      <li><strong>No Termination</strong> — There is no traditional <code>NULL</code> end; traversal continues indefinitely unless a break condition is met.</li>
-      <li><strong>Uniformity</strong> — Every node has a successor, making the structure ideal for repetitive or round-robin tasks.</li>
-      <li><strong>Structure Types</strong> — Can be implemented as a Circular Singly Linked List or a Circular Doubly Linked List.</li>
-    </ul>
-
-    <div class="sub-label">Formulas &amp; Rules</div>
-    <div class="table-wrapper">
-      <table class="formula-table">
-        <thead><tr><th>Property / State</th><th>Metric / Rule</th></tr></thead>
-        <tbody>
-          <tr><td>Optimization via <code>Last</code></td><td>Maintaining a <code>last</code> pointer makes start/end insertion <code>O(1)</code></td></tr>
-          <tr><td>Full Cycle Traversal</td><td>Requires exactly <code>n</code> steps to return to the starting point</td></tr>
-          <tr><td>Loop Invariant</td><td>Following <code>next</code> links <code>n</code> times always returns to the start</td></tr>
-          <tr><td>Empty List State</td><td>List pointer is null; a single-node list points to itself</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="sub-label">Core Operations</div>
-    <div class="table-wrapper">
-      <table class="formula-table">
-        <thead>
-          <tr>
-            <th>Operation</th>
-            <th>Algorithmic Mechanism</th>
-            <th>Time (Best / Avg / Worst)</th>
-            <th>Space</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Insertion (Start/End)</strong></td>
-            <td>Link new node to <code>last.next</code> and update pointers to maintain the loop.</td>
-            <td><code>O(1)</code> / <code>O(1)</code> / <code>O(1)</code></td>
-            <td><code>O(1)</code></td>
-          </tr>
-          <tr>
-            <td><strong>Traversal</strong></td>
-            <td>Iterate from a starting node and stop when current node equals the start again.</td>
-            <td><code>O(n)</code> / <code>O(n)</code> / <code>O(n)</code></td>
             <td><code>O(1)</code></td>
           </tr>
           <tr>
@@ -723,40 +723,78 @@
 <script>
   (function () {
     const root = document.documentElement;
-    const btn  = document.getElementById('themeToggle');
-    const icon = document.getElementById('themeIcon');
-    const lbl  = document.getElementById('themeLabel');
-
-    function systemPrefersDark() {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    }
 
     function applyTheme(dark) {
       root.setAttribute('data-theme', dark ? 'dark' : 'light');
-      icon.textContent = dark ? '🌙' : '☀️';
-      lbl.textContent  = dark ? 'Dark' : 'Light';
+      ['themeIcon','themeIconDrawer'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = dark ? '🌙' : '☀️';
+      });
+      ['themeLabel','themeLabelDrawer'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = dark ? 'Dark' : 'Light';
+      });
     }
 
-    // Load saved preference; fall back to system preference
-    const saved = localStorage.getItem('theme');
-    if (saved) {
-      applyTheme(saved === 'dark');
-    } else {
-      applyTheme(systemPrefersDark());
-    }
-
-    btn.addEventListener('click', function () {
+    function toggleTheme() {
       const isDark = root.getAttribute('data-theme') === 'dark';
-      const next   = !isDark;
-      applyTheme(next);
-      localStorage.setItem('theme', next ? 'dark' : 'light');
+      applyTheme(!isDark);
+      localStorage.setItem('theme', !isDark ? 'dark' : 'light');
+    }
+
+    const saved = localStorage.getItem('theme');
+    applyTheme(saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+    document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+    document.getElementById('themeToggleDrawer').addEventListener('click', toggleTheme);
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (!localStorage.getItem('theme')) applyTheme(e.matches);
     });
 
-    // Keep in sync if system preference changes and user hasn't overridden
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-      if (!localStorage.getItem('theme')) {
-        applyTheme(e.matches);
-      }
+    /* ── Drawer ─────────────────────────────────────────────────── */
+    const hamburger = document.getElementById('hamburger');
+    const drawer    = document.getElementById('drawer');
+    const overlay   = document.getElementById('drawerOverlay');
+    const closeBtn  = document.getElementById('drawerClose');
+
+    function openDrawer() {
+      drawer.classList.add('active');
+      overlay.classList.add('active');
+      overlay.style.display = 'block';
+      hamburger.classList.add('active');
+      document.body.classList.add('drawer-open');
+    }
+
+    function closeDrawer() {
+      drawer.classList.remove('active');
+      overlay.classList.remove('active');
+      hamburger.classList.remove('active');
+      document.body.classList.remove('drawer-open');
+      setTimeout(() => { overlay.style.display = 'none'; }, 280);
+    }
+
+    hamburger.addEventListener('click', openDrawer);
+    closeBtn.addEventListener('click', closeDrawer);
+    overlay.addEventListener('click', closeDrawer);
+
+    drawer.querySelectorAll('a.drawer-link').forEach(link => {
+      link.addEventListener('click', function (e) {
+        closeDrawer();
+        // ensure smooth scroll to the target section
+        const targetId = this.getAttribute('href');
+        if (targetId && targetId.startsWith('#')) {
+          const target = document.querySelector(targetId);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      });
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeDrawer();
     });
   })();
 </script>
