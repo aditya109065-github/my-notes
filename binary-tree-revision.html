@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Binary Trees — Revision Sheet</title>
+<style>
+  /* ── Tokens ─────────────────────────────────────────────── */
+  :root {
+    --bg:       #f5f5f0;
+    --text:     #2d2d2d;
+    --card:     #ffffff;
+    --muted:    #6b7280;
+    --accent1:  #4a7c8e;
+    --accent2:  #5a8a6a;
+    --quote-bg: #fdf6ec;
+    --code-bg:  #eef3f5;
+    --code-txt: #2d4a55;
+    --border:   #e2e8e4;
+    --nav-bg:   #ffffffee;
+    --shadow:   0 2px 12px rgba(0,0,0,.07);
+    --radius:   10px;
+  }
+  [data-theme="dark"] {
+    --bg:       #1a1a2e;
+    --text:     #e0e0d0;
+    --card:     #222235;
+    --muted:    #9999aa;
+    --accent1:  #5ba3b0;
+    --accent2:  #6aab7a;
+    --quote-bg: #2a2a3e;
+    --code-bg:  #2e2e45;
+    --code-txt: #c9d1d9;
+    --border:   #33334a;
+    --nav-bg:   #1a1a2eee;
+    --shadow:   0 2px 16px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:       #1a1a2e;
+      --text:     #e0e0d0;
+      --card:     #222235;
+      --muted:    #9999aa;
+      --accent1:  #5ba3b0;
+      --accent2:  #6aab7a;
+      --quote-bg: #2a2a3e;
+      --code-bg:  #2e2e45;
+      --code-txt: #c9d1d9;
+      --border:   #33334a;
+      --nav-bg:   #1a1a2eee;
+      --shadow:   0 2px 16px rgba(0,0,0,.35);
+    }
+  }
+
+  /* ── Reset / Base ────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    transition: background 0.3s, color 0.3s;
+    min-height: 100vh;
+  }
+
+  /* ── Navbar ──────────────────────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .nav-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+  .nav-brand {
+    font-family: system-ui, sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    padding: .75rem 0;
+    margin-right: .75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .1rem;
+    flex: 1;
+  }
+  .nav-links a {
+    font-family: system-ui, sans-serif;
+    font-size: .72rem;
+    color: var(--muted);
+    text-decoration: none;
+    padding: .4rem .55rem;
+    border-radius: 5px;
+    transition: color .2s, background .2s;
+    white-space: nowrap;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--border); }
+  .toggle-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 20px;
+    padding: .35rem .85rem;
+    font-size: .72rem;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    my: .5rem;
+  }
+  .toggle-btn:hover { background: var(--border); }
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .page-header {
+    text-align: center;
+    padding: 1rem 0 .5rem;
+  }
+  .page-header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 400;
+    letter-spacing: -.01em;
+    color: var(--text);
+  }
+  .page-header p {
+    color: var(--muted);
+    font-size: .9rem;
+    margin-top: .4rem;
+    font-family: system-ui, sans-serif;
+  }
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    justify-content: center;
+    margin-top: .8rem;
+  }
+  .tag {
+    font-family: system-ui, sans-serif;
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .25rem .65rem;
+    border-radius: 20px;
+    background: var(--code-bg);
+    color: var(--accent1);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Cards ───────────────────────────────────────────────── */
+  section.card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--accent1);
+    padding: 1.75rem 1.75rem 1.5rem;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  section.card:nth-child(even) { border-left-color: var(--accent2); }
+  section.card:nth-child(3n)   { border-left-color: #8a6a9e; }
+
+  .card-header {
+    display: flex;
+    align-items: baseline;
+    gap: .75rem;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+  }
+  .card-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .card-tag {
+    font-family: system-ui, sans-serif;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    background: var(--code-bg);
+    padding: .15rem .5rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  section.card:nth-child(even) .card-tag { color: var(--accent2); }
+
+  /* ── Subsection labels ───────────────────────────────────── */
+  .sub-label {
+    font-family: system-ui, sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 1.2rem 0 .5rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  .sub-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Definition blockquote ───────────────────────────────── */
+  blockquote.def {
+    background: var(--quote-bg);
+    border-left: 3px solid var(--accent1);
+    border-radius: 0 6px 6px 0;
+    padding: .75rem 1rem;
+    font-style: italic;
+    font-size: .97rem;
+    color: var(--text);
+    transition: background 0.3s;
+  }
+
+  /* ── Key points list ─────────────────────────────────────── */
+  ul.kp {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+  }
+  ul.kp li {
+    padding-left: 1.4rem;
+    position: relative;
+    font-size: .95rem;
+  }
+  ul.kp li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent1);
+    font-size: .75rem;
+    top: .18em;
+  }
+  section.card:nth-child(even) ul.kp li::before { color: var(--accent2); }
+  ul.kp li strong {
+    font-style: normal;
+    color: var(--text);
+  }
+
+  /* ── Formula table / code ────────────────────────────────── */
+  .formula-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: system-ui, sans-serif;
+    font-size: .875rem;
+  }
+  .formula-table th {
+    background: var(--code-bg);
+    color: var(--muted);
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .5rem .85rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+  }
+  .formula-table td {
+    padding: .5rem .85rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .formula-table tr:last-child td { border-bottom: none; }
+  .formula-table tr:hover td { background: var(--quote-bg); }
+  .formula-table td:nth-child(2) {
+    font-family: 'Courier New', monospace;
+    background: var(--code-bg);
+    color: var(--code-txt);
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Use cases ───────────────────────────────────────────── */
+  .use-cases {
+    font-size: .95rem;
+    color: var(--text);
+  }
+
+  /* ── Warning / remember box ──────────────────────────────── */
+  .remember {
+    background: var(--code-bg);
+    border-left: 3px solid #c0803a;
+    border-radius: 0 6px 6px 0;
+    padding: .7rem 1rem;
+    font-size: .9rem;
+    font-family: system-ui, sans-serif;
+    color: var(--text);
+    display: flex;
+    gap: .5rem;
+    align-items: flex-start;
+  }
+  .remember .icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+
+  /* ── Comparison table ────────────────────────────────────── */
+  .cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+    font-family: system-ui, sans-serif;
+  }
+  .cmp-table th {
+    background: var(--accent1);
+    color: #fff;
+    padding: .55rem .9rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: .8rem;
+    letter-spacing: .04em;
+  }
+  .cmp-table th:first-child { border-radius: 6px 0 0 0; }
+  .cmp-table th:last-child  { border-radius: 0 6px 0 0; }
+  .cmp-table td {
+    padding: .5rem .9rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .cmp-table tr:last-child td { border-bottom: none; }
+  .cmp-table tr:hover td { background: var(--quote-bg); }
+  .cmp-table td:first-child { font-weight: 600; color: var(--muted); }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    main { padding: 1.5rem .85rem 3rem; }
+    section.card { padding: 1.25rem 1rem 1rem; }
+    .nav-inner { padding: 0 .75rem; gap: .3rem; }
+    .nav-brand { font-size: .7rem; }
+    .toggle-btn { padding: .3rem .6rem; }
+    .formula-table td:nth-child(2) { white-space: normal; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav>
+  <div class="nav-inner">
+    <span class="nav-brand">📐 Binary Trees</span>
+    <div class="nav-links">
+      <a href="#general">General</a>
+      <a href="#terminology">Terms</a>
+      <a href="#full">Full</a>
+      <a href="#complete">Complete</a>
+      <a href="#perfect">Perfect</a>
+      <a href="#degenerate">Degenerate</a>
+      <a href="#balanced">Balanced</a>
+      <a href="#bplus">B+ Tree</a>
+      <a href="#bplus-components">Components</a>
+      <a href="#bplus-vs-b">B+ vs B</a>
+    </div>
+    <button class="toggle-btn" id="themeToggle" aria-label="Toggle theme">
+      <span id="themeIcon">☀️</span>
+      <span id="themeLabel">Light</span>
+    </button>
+  </div>
+</nav>
+
+<!-- ── Main ── -->
+<main>
+
+  <!-- Page Header -->
+  <div class="page-header">
+    <h1>Binary Trees — Revision Sheet</h1>
+    <p>A complete reference covering tree types, properties, and B+ trees</p>
+    <div class="tag-row">
+      <span class="tag">Data Structures</span>
+      <span class="tag">Trees</span>
+      <span class="tag">B+ Trees</span>
+      <span class="tag">Algorithms</span>
+    </div>
+  </div>
+
+  <!-- 1. General Concepts -->
+  <section class="card" id="general">
+    <div class="card-header">
+      <h2>Binary Tree — General Concepts</h2>
+      <span class="card-tag">Foundations</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A non-linear data structure where each node can have a maximum of two children, known as the left and right child.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li>Specialised version of a General Tree — each node has <strong>at most two children</strong>.</li>
+      <li>Each node holds: a <strong>data item</strong>, address of <strong>left child</strong>, address of <strong>right child</strong>.</li>
+      <li>Creates a hierarchical structure similar to an org chart — root at top, branches below.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Property</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Maximum nodes at level <em>i</em></td><td>2^i</td></tr>
+        <tr><td>Maximum nodes for height <em>h</em></td><td>2^(h+1) − 1</td></tr>
+        <tr><td>Minimum nodes for height <em>h</em></td><td>h + 1</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Use Cases</div>
+    <p class="use-cases">Used in binary search trees for efficient searching and in heaps for priority queues and sorting. Real-world applications include virtual memory management and 3D rendering for faster object access.</p>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">⚠️</span>
+      Without balancing, a binary tree can perform as poorly as a linked list. Worst-case time complexity for search, insert, and delete is <strong>O(n)</strong>.
+    </div>
+  </section>
+
+  <!-- 2. Terminology -->
+  <section class="card" id="terminology">
+    <div class="card-header">
+      <h2>Binary Tree Terminologies</h2>
+      <span class="card-tag">Vocabulary</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      The specific vocabulary used to describe the components and measurements of a tree's structure.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li><strong>Root</strong> — Topmost node; a tree has exactly one root.</li>
+      <li><strong>Leaf Node</strong> — Bottom node with no children.</li>
+      <li><strong>Internal Node</strong> — Any node with at least one child.</li>
+      <li><strong>Parent / Child</strong> — A preceding node is a parent; its successor is a child.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Property</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Height of a tree</td><td>Edges from deepest node → root</td></tr>
+        <tr><td>Depth of a node</td><td>Edges from that node → root</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 3. Full Binary Tree -->
+  <section class="card" id="full">
+    <div class="card-header">
+      <h2>Full Binary Tree</h2>
+      <span class="card-tag">Proper Binary Tree</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A binary tree where every node has either <strong>zero or two</strong> children nodes.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li>Strictly forbids any node from having exactly <strong>one child</strong>.</li>
+      <li>Internal nodes always have two children; leaf nodes have zero.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Property</th><th>Formula (given n total nodes)</th></tr></thead>
+      <tbody>
+        <tr><td>Number of internal nodes</td><td>(n − 1) / 2</td></tr>
+        <tr><td>Number of leaf nodes</td><td>(n + 1) / 2</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">⚠️</span>
+      Do <strong>not</strong> assume all leaves must be on the same level — they can appear at any level as long as the 0-or-2 child rule is met.
+    </div>
+  </section>
+
+  <!-- 4. Complete Binary Tree -->
+  <section class="card" id="complete">
+    <div class="card-header">
+      <h2>Complete Binary Tree</h2>
+      <span class="card-tag">Compact</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A tree where all levels are fully filled except possibly the last, which must be filled <strong>from left to right</strong>.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li>Nodes are arranged without missing any sequence in the structure.</li>
+      <li>On the last level, all nodes must be packed as far <strong>to the left</strong> as possible — no gaps.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Property</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Minimum nodes for height <em>h</em></td><td>2^h</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">⚠️</span>
+      The "left-to-right" rule is critical — even a single gap between nodes on the last level makes the tree <strong>not complete</strong>.
+    </div>
+  </section>
+
+  <!-- 5. Perfect Binary Tree -->
+  <section class="card" id="perfect">
+    <div class="card-header">
+      <h2>Perfect Binary Tree</h2>
+      <span class="card-tag">Symmetric</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A symmetrical tree where every internal node has exactly two children and all leaf nodes are on the <strong>same level</strong>.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li>Perfectly balanced — zero empty spaces anywhere.</li>
+      <li>Always both a <strong>full</strong> and a <strong>complete</strong> binary tree by default.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Property</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Height given <em>n</em> nodes</td><td>log₂(n + 1)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">💡</span>
+      The total sum of all levels is always exactly <strong>one node less</strong> than what the next hypothetical level would hold.
+    </div>
+  </section>
+
+  <!-- 6. Degenerate Tree -->
+  <section class="card" id="degenerate">
+    <div class="card-header">
+      <h2>Degenerate (Skewed) Binary Tree</h2>
+      <span class="card-tag">Worst Case</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A tree where each node has only one child node, causing it to grow in a <strong>single straight line</strong>.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li><strong>Left-skewed</strong> — All nodes lean toward the left.</li>
+      <li><strong>Right-skewed</strong> — All nodes lean toward the right.</li>
+      <li>Behaves identically to a <strong>linked list</strong> in terms of performance.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Operation</th><th>Time Complexity</th></tr></thead>
+      <tbody>
+        <tr><td>Search / Insert / Delete</td><td>O(n)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">⚠️</span>
+      This is the <strong>worst-case scenario</strong> for binary tree efficiency — it loses all benefits of hierarchical storage.
+    </div>
+  </section>
+
+  <!-- 7. Balanced Binary Tree -->
+  <section class="card" id="balanced">
+    <div class="card-header">
+      <h2>Balanced Binary Tree</h2>
+      <span class="card-tag">Self-Balancing</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A tree where the height of the left and right subtrees of any node differ by <strong>no more than one</strong>.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li>For a tree to be balanced, its left <em>and</em> right subtrees must <strong>also</strong> be balanced.</li>
+      <li>Maintains efficient performance by preventing the tree from becoming skewed.</li>
+    </ul>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">⚠️</span>
+      A difference of <strong>2 or more</strong> in subtree heights violates the balanced condition.
+    </div>
+  </section>
+
+  <!-- 8. B+ Tree -->
+  <section class="card" id="bplus">
+    <div class="card-header">
+      <h2>B+ Tree</h2>
+      <span class="card-tag">Database / Disk</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      An advanced balanced search tree where all actual data is stored <strong>only in leaf nodes</strong>, while internal nodes store only keys for navigation.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li>All leaf nodes are linked in a <strong>single linked list</strong> for efficient range-based queries.</li>
+      <li>High "fan-out" — many children per node keeps tree height short.</li>
+      <li>Designed to be <strong>disk-efficient and cache-friendly</strong> for database systems.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Property / Operation</th><th>Formula / Complexity</th></tr></thead>
+      <tbody>
+        <tr><td>Search / Insert / Delete</td><td>O(log n)</td></tr>
+        <tr><td>Min children (non-root internal node)</td><td>⌈m/2⌉</td></tr>
+        <tr><td>Min keys (non-root internal node)</td><td>⌈(m−1)/2⌉</td></tr>
+        <tr><td>Root node children</td><td>Minimum 2</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Use Cases</div>
+    <p class="use-cases">Widely used in <strong>database indexing</strong> and <strong>file systems</strong> where fast retrieval of sorted data from disks is required. Preferred for range-based queries due to linked leaf nodes.</p>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">⚠️</span>
+      Major difference from B-Trees: B+ Trees store data <strong>only in leaf nodes</strong>, whereas B-Trees store data in both internal and leaf nodes.
+    </div>
+  </section>
+
+  <!-- 9. B+ Tree Components -->
+  <section class="card" id="bplus-components">
+    <div class="card-header">
+      <h2>B+ Tree Components</h2>
+      <span class="card-tag">Internal vs. Leaf Nodes</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      The specialised node types that serve different roles within the B+ tree hierarchy.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li><strong>Internal Nodes</strong> — Act as "navigators": store only <em>search keys</em> and tree pointers to lower levels.</li>
+      <li><strong>Leaf Nodes</strong> — Act as "data storage": contain actual record keys, data pointers, and a <em>P_next</em> pointer to the next leaf.</li>
+      <li>All leaf nodes must be at the <strong>same level</strong>.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <table class="formula-table">
+      <thead><tr><th>Rule</th><th>Formula</th></tr></thead>
+      <tbody>
+        <tr><td>Internal node key count (given c pointers)</td><td>c − 1 keys</td></tr>
+        <tr><td>Sorted order</td><td>Both node types always keep keys sorted</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">💡</span>
+      Leaf nodes use a <strong>P_next pointer</strong> to connect to each other — this pointer is <em>not</em> present in internal nodes.
+    </div>
+  </section>
+
+  <!-- 10. B+ vs B Tree -->
+  <section class="card" id="bplus-vs-b">
+    <div class="card-header">
+      <h2>B+ Tree vs. B Tree</h2>
+      <span class="card-tag">Comparison</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      Structural and performance differences between standard B Trees and their B+ extensions.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <table class="cmp-table">
+      <thead>
+        <tr><th>Property</th><th>B Tree</th><th>B+ Tree</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Data Location</td><td>All nodes (internal + leaf)</td><td>Leaf nodes only</td></tr>
+        <tr><td>Leaf Node Links</td><td>Not linked</td><td>Linked list of leaves</td></tr>
+        <tr><td>Range Queries</td><td>Slower (no leaf links)</td><td>Faster (sequential scan)</td></tr>
+        <tr><td>Disk I/O</td><td>More accesses for ranges</td><td>Fewer accesses for ranges</td></tr>
+      </tbody>
+    </table>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <span class="icon">⚠️</span>
+      B+ Trees may require <strong>more memory</strong> for internal nodes because keys are often duplicated in the leaf nodes.
+    </div>
+  </section>
+
+</main>
+
+<script>
+  (function () {
+    const root = document.documentElement;
+    const btn  = document.getElementById('themeToggle');
+    const icon = document.getElementById('themeIcon');
+    const lbl  = document.getElementById('themeLabel');
+
+    function systemPrefersDark() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function applyTheme(dark) {
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
+      icon.textContent = dark ? '🌙' : '☀️';
+      lbl.textContent  = dark ? 'Dark' : 'Light';
+    }
+
+    // Load saved preference; fall back to system preference
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      applyTheme(saved === 'dark');
+    } else {
+      applyTheme(systemPrefersDark());
+    }
+
+    btn.addEventListener('click', function () {
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      const next   = !isDark;
+      applyTheme(next);
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+    });
+
+    // Keep in sync if system preference changes and user hasn't overridden
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+      if (!localStorage.getItem('theme')) {
+        applyTheme(e.matches);
+      }
+    });
+  })();
+</script>
+</body>
+</html>
