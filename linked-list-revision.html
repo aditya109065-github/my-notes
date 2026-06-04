@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Linked Lists — Revision Sheet</title>
+<style>
+  /* ── Tokens ─────────────────────────────────────────────── */
+  :root {
+    --bg:       #f5f5f0;
+    --text:     #2d2d2d;
+    --card:     #ffffff;
+    --muted:    #6b7280;
+    --accent1:  #4a7c8e;
+    --accent2:  #5a8a6a;
+    --quote-bg: #fdf6ec;
+    --code-bg:  #eef3f5;
+    --code-txt: #2d4a55;
+    --border:   #e2e8e4;
+    --nav-bg:   #ffffffee;
+    --shadow:   0 2px 12px rgba(0,0,0,.07);
+    --radius:   10px;
+  }
+  [data-theme="dark"] {
+    --bg:       #1a1a2e;
+    --text:     #e0e0d0;
+    --card:     #222235;
+    --muted:    #9999aa;
+    --accent1:  #5ba3b0;
+    --accent2:  #6aab7a;
+    --quote-bg: #2a2a3e;
+    --code-bg:  #2e2e45;
+    --code-txt: #c9d1d9;
+    --border:   #33334a;
+    --nav-bg:   #1a1a2eee;
+    --shadow:   0 2px 16px rgba(0,0,0,.35);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:       #1a1a2e;
+      --text:     #e0e0d0;
+      --card:     #222235;
+      --muted:    #9999aa;
+      --accent1:  #5ba3b0;
+      --accent2:  #6aab7a;
+      --quote-bg: #2a2a3e;
+      --code-bg:  #2e2e45;
+      --code-txt: #c9d1d9;
+      --border:   #33334a;
+      --nav-bg:   #1a1a2eee;
+      --shadow:   0 2px 16px rgba(0,0,0,.35);
+    }
+  }
+
+  /* ── Reset / Base ────────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    transition: background 0.3s, color 0.3s;
+    min-height: 100vh;
+  }
+
+  /* ── Navbar ──────────────────────────────────────────────── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s, border-color 0.3s;
+  }
+  .nav-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex-wrap: wrap;
+  }
+  .nav-brand {
+    font-family: system-ui, sans-serif;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    padding: .75rem 0;
+    margin-right: .75rem;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .1rem;
+    flex: 1;
+  }
+  .nav-links a {
+    font-family: system-ui, sans-serif;
+    font-size: .72rem;
+    color: var(--muted);
+    text-decoration: none;
+    padding: .4rem .55rem;
+    border-radius: 5px;
+    transition: color .2s, background .2s;
+    white-space: nowrap;
+  }
+  .nav-links a:hover { color: var(--text); background: var(--border); }
+  .toggle-btn {
+    margin-left: auto;
+    flex-shrink: 0;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 20px;
+    padding: .35rem .85rem;
+    font-size: .72rem;
+    font-family: system-ui, sans-serif;
+    cursor: pointer;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    margin-top: .5rem;
+    margin-bottom: .5rem;
+  }
+  .toggle-btn:hover { background: var(--border); }
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  main {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2.5rem 1.25rem 4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+  .page-header {
+    text-align: center;
+    padding: 1rem 0 .5rem;
+  }
+  .page-header h1 {
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    font-weight: 400;
+    letter-spacing: -.01em;
+    color: var(--text);
+  }
+  .page-header p {
+    color: var(--muted);
+    font-size: .9rem;
+    margin-top: .4rem;
+    font-family: system-ui, sans-serif;
+  }
+  .tag-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+    justify-content: center;
+    margin-top: .8rem;
+  }
+  .tag {
+    font-family: system-ui, sans-serif;
+    font-size: .68rem;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .25rem .65rem;
+    border-radius: 20px;
+    background: var(--code-bg);
+    color: var(--accent1);
+    border: 1px solid var(--border);
+  }
+
+  /* ── Cards ───────────────────────────────────────────────── */
+  section.card {
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--accent1);
+    padding: 1.75rem 1.75rem 1.5rem;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  section.card:nth-child(even) { border-left-color: var(--accent2); }
+  section.card:nth-child(3n)   { border-left-color: #8a6a9e; }
+
+  .card-header {
+    display: flex;
+    align-items: baseline;
+    gap: .75rem;
+    margin-bottom: 1.1rem;
+    flex-wrap: wrap;
+  }
+  .card-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .card-tag {
+    font-family: system-ui, sans-serif;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--accent1);
+    background: var(--code-bg);
+    padding: .15rem .5rem;
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  section.card:nth-child(even) .card-tag { color: var(--accent2); }
+  section.card:nth-child(3n) .card-tag { color: #8a6a9e; }
+
+  /* ── Subsection labels ───────────────────────────────────── */
+  .sub-label {
+    font-family: system-ui, sans-serif;
+    font-size: .7rem;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 1.2rem 0 .5rem;
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+  }
+  .sub-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Definition blockquote ───────────────────────────────── */
+  blockquote.def {
+    background: var(--quote-bg);
+    border-left: 3px solid var(--accent1);
+    border-radius: 0 6px 6px 0;
+    padding: .75rem 1rem;
+    font-style: italic;
+    font-size: .97rem;
+    color: var(--text);
+    transition: background 0.3s;
+  }
+  section.card:nth-child(even) blockquote.def { border-left-color: var(--accent2); }
+  section.card:nth-child(3n) blockquote.def { border-left-color: #8a6a9e; }
+
+  /* ── Key points list ─────────────────────────────────────── */
+  ul.kp {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+  }
+  ul.kp li {
+    padding-left: 1.4rem;
+    position: relative;
+    font-size: .95rem;
+  }
+  ul.kp li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--accent1);
+    font-size: .75rem;
+    top: .18em;
+  }
+  section.card:nth-child(even) ul.kp li::before { color: var(--accent2); }
+  section.card:nth-child(3n) ul.kp li::before { color: #8a6a9e; }
+  ul.kp li strong {
+    font-style: normal;
+    color: var(--text);
+  }
+
+  /* ── Formula table / code ────────────────────────────────── */
+  .table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin: .5rem 0;
+  }
+  .formula-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: system-ui, sans-serif;
+    font-size: .875rem;
+  }
+  .formula-table th {
+    background: var(--code-bg);
+    color: var(--muted);
+    font-size: .68rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: .5rem .85rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .formula-table td {
+    padding: .5rem .85rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .formula-table tr:last-child td { border-bottom: none; }
+  .formula-table tr:hover td { background: var(--quote-bg); }
+  
+  /* Highlight specifically for complexity columns if needed */
+  .formula-table td code {
+    font-family: 'Courier New', monospace;
+    background: var(--code-bg);
+    color: var(--code-txt);
+    padding: 0.1rem 0.3rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  /* ── Use cases ───────────────────────────────────────────── */
+  .use-cases {
+    font-size: .95rem;
+    color: var(--text);
+  }
+
+  /* ── Warning / remember box ──────────────────────────────── */
+  .remember {
+    background: var(--code-bg);
+    border-left: 3px solid #c0803a;
+    border-radius: 0 6px 6px 0;
+    padding: .7rem 1rem;
+    font-size: .9rem;
+    font-family: system-ui, sans-serif;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+  }
+  .remember-item {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-start;
+  }
+  .remember .icon { font-size: 1rem; flex-shrink: 0; margin-top: .05rem; }
+
+  /* ── Comparison table ────────────────────────────────────── */
+  .cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .875rem;
+    font-family: system-ui, sans-serif;
+  }
+  .cmp-table th {
+    background: var(--accent1);
+    color: #fff;
+    padding: .55rem .9rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: .8rem;
+    letter-spacing: .04em;
+  }
+  section.card:nth-child(even) .cmp-table th { background: var(--accent2); }
+  section.card:nth-child(3n) .cmp-table th { background: #8a6a9e; }
+  
+  .cmp-table th:first-child { border-radius: 6px 0 0 0; }
+  .cmp-table th:last-child  { border-radius: 0 6px 0 0; }
+  .cmp-table td {
+    padding: .5rem .9rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .cmp-table tr:last-child td { border-bottom: none; }
+  .cmp-table tr:hover td { background: var(--quote-bg); }
+  .cmp-table td:first-child { font-weight: 600; color: var(--muted); }
+
+  /* ── Responsive ──────────────────────────────────────────── */
+  @media (max-width: 600px) {
+    main { padding: 1.5rem .85rem 3rem; }
+    section.card { padding: 1.25rem 1rem 1rem; }
+    .nav-inner { padding: 0 .75rem; gap: .3rem; }
+    .nav-brand { font-size: .7rem; }
+    .toggle-btn { padding: .3rem .6rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-brand">🔗 Linked Lists</span>
+    <div class="nav-links">
+      <a href="#singly">Singly</a>
+      <a href="#doubly">Doubly</a>
+      <a href="#circular">Circular</a>
+    </div>
+    <button class="toggle-btn" id="themeToggle" aria-label="Toggle theme">
+      <span id="themeIcon">☀️</span>
+      <span id="themeLabel">Light</span>
+    </button>
+  </div>
+</nav>
+
+<main>
+
+  <div class="page-header">
+    <h1>Linked Lists — Revision Sheet</h1>
+    <p>A complete reference covering singly, doubly, and circular node-based structures.</p>
+    <div class="tag-row">
+      <span class="tag">Data Structures</span>
+      <span class="tag">Dynamic Memory</span>
+      <span class="tag">Pointers</span>
+    </div>
+  </div>
+
+  <section class="card" id="singly">
+    <div class="card-header">
+      <h2>Singly Linked Lists</h2>
+      <span class="card-tag">Core Concept</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A linear data structure consisting of nodes where each node contains a data field and a reference to the next node in the sequence, ending in a null pointer.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li><strong>Unidirectional Flow</strong> — Traversal is restricted to one direction as nodes only maintain a single link to their successor.</li>
+      <li><strong>Dynamic Allocation</strong> — Memory size is allocated or de-allocated at run time, allowing the list to grow or shrink as needed.</li>
+      <li><strong>Non-Contiguous Storage</strong> — Unlike arrays, nodes are not stored in contiguous memory locations and are linked via pointers.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <div class="table-wrapper">
+      <table class="formula-table">
+        <thead><tr><th>Property / Invariant</th><th>Metric / Rule</th></tr></thead>
+        <tbody>
+          <tr><td>Access Complexity</td><td><code>O(n)</code> (random access not supported)</td></tr>
+          <tr><td>Insertion/Deletion (Beginning)</td><td><code>O(1)</code> time complexity</td></tr>
+          <tr><td>Space Complexity</td><td><code>O(n)</code> where n is the number of elements</td></tr>
+          <tr><td>Head Invariant</td><td>Must always point to the first node to maintain access</td></tr>
+          <tr><td>Termination Invariant</td><td>The next pointer of the tail node must be <code>null</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Core Operations</div>
+    <div class="table-wrapper">
+      <table class="formula-table">
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>Algorithmic Mechanism</th>
+            <th>Time (Best / Avg / Worst)</th>
+            <th>Space</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Insertion (Beginning)</strong></td>
+            <td>Create a new node, point its <code>next</code> to current head, update head to new node.</td>
+            <td><code>O(1)</code> / <code>O(1)</code> / <code>O(1)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Insertion (End)</strong></td>
+            <td>Traverse to the last node (where next is null) and update that pointer to the new node.</td>
+            <td><code>O(1)</code> (if tail kept) / <code>O(n)</code> / <code>O(n)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Search</strong></td>
+            <td>Sequentially compare the key element with each node's data field starting from head.</td>
+            <td><code>O(1)</code> (at head) / <code>O(n)</code> / <code>O(n)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Reversal</strong></td>
+            <td>Iterate through the list, flipping each node's <code>next</code> pointer to its predecessor.</td>
+            <td><code>O(n)</code> / <code>O(n)</code> / <code>O(n)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Use Cases</div>
+    <ul class="kp">
+      <li><strong>Data Structure Implementation</strong> — Used as a base to implement higher-level structures like stacks, queues, and graphs.</li>
+      <li><strong>Dynamic Memory Management</strong> — Utilized when total elements are unknown at compile time, avoiding array size limitations.</li>
+    </ul>
+
+    <div class="sub-label">Contrasts: Linked List vs Array</div>
+    <div class="table-wrapper">
+      <table class="cmp-table">
+        <thead>
+          <tr><th>Feature</th><th>Linked List</th><th>Array</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Memory Allocation</td><td>Dynamic (one by one)</td><td>Static/Fixed (whole block)</td></tr>
+          <tr><td>Access Type</td><td>Sequential (<code>O(n)</code>)</td><td>Random (<code>O(1)</code>)</td></tr>
+          <tr><td>Insertion/Deletion</td><td>Efficient (<code>O(1)</code> at ends)</td><td>Inefficient (requires shifting)</td></tr>
+          <tr><td>Cache Friendliness</td><td>Low (non-contiguous)</td><td>High (contiguous memory)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <div class="remember-item">
+        <span class="icon">💡</span>
+        <div><strong>Cache Unfriendly:</strong> Nodes are scattered in memory resulting in poor locality of reference and cache misses during traversal.</div>
+      </div>
+      <div class="remember-item">
+        <span class="icon">🚀</span>
+        <div><strong>Real-Time Advantage:</strong> Allows <code>O(1)</code> insertion/deletion at the beginning without shifting elements, critical for time-sensitive tasks.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="doubly">
+    <div class="card-header">
+      <h2>Doubly Linked Lists</h2>
+      <span class="card-tag">Bidirectional</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A complex linked list where each node contains data and two pointers: one pointing to the next node and another to the previous node.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li><strong>Bidirectional Traversal</strong> — Facilitates efficient navigation in both forward and backward directions using <code>next</code> and <code>prev</code> pointers.</li>
+      <li><strong>Pointer Overhead</strong> — Each node requires more memory compared to a singly linked list due to the additional pointer.</li>
+      <li><strong>Symmetry Rule</strong> — For any node N, if N.next is M, then M.prev must be N to maintain structural integrity.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <div class="table-wrapper">
+      <table class="formula-table">
+        <thead><tr><th>Property / Rule</th><th>Metric / Formula</th></tr></thead>
+        <tbody>
+          <tr><td>Node Memory Consumption</td><td><code>(Data Size) + 2 * (Pointer Size)</code> per node</td></tr>
+          <tr><td>Deletion Efficiency</td><td><code>O(1)</code> time if the pointer to the target node is known</td></tr>
+          <tr><td>Head/Tail Bounds</td><td><code>prev</code> of head and <code>next</code> of tail must be null</td></tr>
+          <tr><td>Referential Complexity</td><td>Insertion/deletion updates 4 pointers (2 for new node, 1 for each neighbor)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Core Operations</div>
+    <div class="table-wrapper">
+      <table class="formula-table">
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>Algorithmic Mechanism</th>
+            <th>Time (Best / Avg / Worst)</th>
+            <th>Space</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Deletion</strong></td>
+            <td>Update the <code>next</code> of preceding node and <code>prev</code> of succeeding node to bypass target.</td>
+            <td><code>O(1)</code> / <code>O(1)</code> / <code>O(1)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Backward Traversal</strong></td>
+            <td>Start from the tail or any middle node and move toward the head using <code>prev</code>.</td>
+            <td><code>O(1)</code> / <code>O(n)</code> / <code>O(n)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Insertion at Tail</strong></td>
+            <td>Link new node's <code>prev</code> to current tail, update tail's <code>next</code> to new node.</td>
+            <td><code>O(1)</code> / <code>O(1)</code> / <code>O(1)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Use Cases</div>
+    <ul class="kp">
+      <li><strong>Navigation Systems</strong> — Ideal for browser history (back/forward), music playlists, and undo/redo functionality.</li>
+      <li><strong>Deques (Double-Ended Queues)</strong> — Efficiently supports insertion and removal from both ends of the data structure.</li>
+    </ul>
+
+    <div class="sub-label">Contrasts: Singly vs Doubly</div>
+    <div class="table-wrapper">
+      <table class="cmp-table">
+        <thead>
+          <tr><th>Parameter</th><th>Singly Linked List</th><th>Doubly Linked List</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Memory</td><td>Lower (1 pointer/node)</td><td>Higher (2 pointers/node)</td></tr>
+          <tr><td>Traversal</td><td>Forward only</td><td>Forward and Backward</td></tr>
+          <tr><td>Deletion</td><td>Requires pointer to predecessor</td><td><code>O(1)</code> if target pointer is known</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <div class="remember-item">
+        <span class="icon">✅</span>
+        <div><strong>Simplified Deletion:</strong> The <code>prev</code> pointer eliminates the need to traverse from the head to find the previous node, achieving <code>O(1)</code> deletion.</div>
+      </div>
+      <div class="remember-item">
+        <span class="icon">⚠️</span>
+        <div><strong>Major Disadvantages:</strong> Consumes more memory per node, and pointer implementation is highly complex, increasing the risk of broken links.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" id="circular">
+    <div class="card-header">
+      <h2>Circular Linked Lists</h2>
+      <span class="card-tag">Closed Loop</span>
+    </div>
+
+    <div class="sub-label">Definition</div>
+    <blockquote class="def">
+      A linked list variation where the last node points back to the first node instead of null, forming a continuous closed loop.
+    </blockquote>
+
+    <div class="sub-label">Key Points</div>
+    <ul class="kp">
+      <li><strong>No Termination</strong> — There is no traditional <code>NULL</code> end; traversal continues indefinitely unless a break condition is met.</li>
+      <li><strong>Uniformity</strong> — Every node has a successor, making the structure ideal for repetitive or round-robin tasks.</li>
+      <li><strong>Structure Types</strong> — Can be implemented as a Circular Singly Linked List or a Circular Doubly Linked List.</li>
+    </ul>
+
+    <div class="sub-label">Formulas &amp; Rules</div>
+    <div class="table-wrapper">
+      <table class="formula-table">
+        <thead><tr><th>Property / State</th><th>Metric / Rule</th></tr></thead>
+        <tbody>
+          <tr><td>Optimization via <code>Last</code></td><td>Maintaining a <code>last</code> pointer makes start/end insertion <code>O(1)</code></td></tr>
+          <tr><td>Full Cycle Traversal</td><td>Requires exactly <code>n</code> steps to return to the starting point</td></tr>
+          <tr><td>Loop Invariant</td><td>Following <code>next</code> links <code>n</code> times always returns to the start</td></tr>
+          <tr><td>Empty List State</td><td>List pointer is null; a single-node list points to itself</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Core Operations</div>
+    <div class="table-wrapper">
+      <table class="formula-table">
+        <thead>
+          <tr>
+            <th>Operation</th>
+            <th>Algorithmic Mechanism</th>
+            <th>Time (Best / Avg / Worst)</th>
+            <th>Space</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Insertion (Start/End)</strong></td>
+            <td>Link new node to <code>last.next</code> and update pointers to maintain the loop.</td>
+            <td><code>O(1)</code> / <code>O(1)</code> / <code>O(1)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Traversal</strong></td>
+            <td>Iterate from a starting node and stop when current node equals the start again.</td>
+            <td><code>O(n)</code> / <code>O(n)</code> / <code>O(n)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+          <tr>
+            <td><strong>Singly to Circular</strong></td>
+            <td>Traverse to the end of a singly list and update last node's <code>next</code> to point to head.</td>
+            <td><code>O(n)</code> / <code>O(n)</code> / <code>O(n)</code></td>
+            <td><code>O(1)</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Use Cases</div>
+    <ul class="kp">
+      <li><strong>OS Task Scheduling</strong> — Used in systems where multiple processes are executed in a continuous round-robin cycle.</li>
+      <li><strong>Continuous Playlists</strong> — Allows media players to seamlessly loop back to the first song after the final track.</li>
+    </ul>
+
+    <div class="sub-label">Contrasts: Regular vs Circular</div>
+    <div class="table-wrapper">
+      <table class="cmp-table">
+        <thead>
+          <tr><th>Feature</th><th>Regular Linked List</th><th>Circular Linked List</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>End of List</td><td>Last node points to <code>NULL</code></td><td>Last node points to <code>Head</code></td></tr>
+          <tr><td>Traversal End</td><td>Stops at <code>NULL</code></td><td>Never ends (Infinite loop risk)</td></tr>
+          <tr><td>Pointer Efficiency</td><td>Requires head traversal for end ops</td><td><code>O(1)</code> for both ends if <code>last</code> pointer used</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub-label">Things to Remember</div>
+    <div class="remember">
+      <div class="remember-item">
+        <span class="icon">🔑</span>
+        <div><strong>Last Pointer Advantage:</strong> Using a <code>last</code> pointer gives direct access to the end (<code>last</code>) AND the beginning (<code>last->next</code>), allowing <code>O(1)</code> insertion at both.</div>
+      </div>
+      <div class="remember-item">
+        <span class="icon">⚠️</span>
+        <div><strong>Infinite Loop Risk:</strong> Because there is no null terminator, traversal logic must explicitly check if it has returned to the starting node.</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  (function () {
+    const root = document.documentElement;
+    const btn  = document.getElementById('themeToggle');
+    const icon = document.getElementById('themeIcon');
+    const lbl  = document.getElementById('themeLabel');
+
+    function systemPrefersDark() {
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+
+    function applyTheme(dark) {
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
+      icon.textContent = dark ? '🌙' : '☀️';
+      lbl.textContent  = dark ? 'Dark' : 'Light';
+    }
+
+    // Load saved preference; fall back to system preference
+    const saved = localStorage.getItem('theme');
+    if (saved) {
+      applyTheme(saved === 'dark');
+    } else {
+      applyTheme(systemPrefersDark());
+    }
+
+    btn.addEventListener('click', function () {
+      const isDark = root.getAttribute('data-theme') === 'dark';
+      const next   = !isDark;
+      applyTheme(next);
+      localStorage.setItem('theme', next ? 'dark' : 'light');
+    });
+
+    // Keep in sync if system preference changes and user hasn't overridden
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
+      if (!localStorage.getItem('theme')) {
+        applyTheme(e.matches);
+      }
+    });
+  })();
+</script>
+</body>
+</html>
